@@ -492,7 +492,7 @@ class Scheduler:
         if 12 <= h < 14:
             return (1, 1)
         if 14 <= h < 17:
-            return (2, 1)
+            return (2, 2)
         if 17 <= h < 20:
             return (3, 2)
         if 20 <= h < START_LIMIT_HOUR:
