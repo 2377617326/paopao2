@@ -66,7 +66,7 @@ FORCE_START_AFTER = 40    # 建房后40分钟强制开始
 START_LIMIT_HOUR = 22     # 22:20后不再新建房间
 START_LIMIT_MIN = 20
 POLL_INTERVAL = 15        # 轮询秒数
-MAX_JOB_RUNTIME = 1.9 * 60 * 60  # 每2小时cron, 留余量提前退出交给下个job
+MAX_JOB_RUNTIME = 4 * 60 * 60  # 每2小时cron, 4小时运行时间
 FLIP_RETRY = 3            # 翻期失败重试次数
 
 # 9001 决策软件端口
