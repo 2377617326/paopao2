@@ -486,7 +486,7 @@ class Scheduler:
         now = self._now()
         h = now.hour + now.minute / 60
         if 7 <= h < 9:
-            return (2, 1)
+            return (1, 2)
         if 9 <= h < 12:
             return (2, 1)
         if 12 <= h < 14:
