@@ -4,13 +4,13 @@
 时间段建房策略 + 按房间名定时开赛 + 每20min自动翻期 + 自动结束
 
 时间线 (北京时间):
-  08:00-09:00  只建 牛刀小试
+  07:00-09:00  主 锋芒毕露 次 牛刀小试
   09:00-12:00  主 锋芒毕露 次 牛刀小试
   12:00-14:00  只建 牛刀小试
   14:00-17:00  主 锋芒毕露 次 牛刀小试
   17:00-20:00  主 群雄争霸 次 锋芒毕露
-  20:00-22:00  默认建 牛刀小试
-  22:00后      不再新建, 仅检查是否有遗漏(未结束)房间并处理
+  20:00-22:20  默认建 牛刀小试
+  22:20后      不再新建, 仅检查是否有遗漏(未结束)房间并处理
 
 建房参数: 4季度, 每周期20分钟, 密码123, 其余默认
 房间名: 尔尔定时比赛q群5342744003（满{n}开）不满{HH:MM}开
@@ -63,8 +63,8 @@ TOTAL_PERIOD = 4          # 4季度
 PERIOD_LENGTH = 20        # 每周期20分钟 (翻期间隔)
 ROOM_PASSWORD = "123"
 FORCE_START_AFTER = 40    # 建房后40分钟强制开始
-START_HOUR = 7            # 07:00 开始建房 (北京时间)
-START_LIMIT_HOUR = 22 + 20 / 60   # 22:20 后不再新建房间, 仅检查遗漏房间
+START_LIMIT_HOUR = 22     # 22:20后不再新建房间
+START_LIMIT_MIN = 20
 POLL_INTERVAL = 15        # 轮询秒数
 MAX_JOB_RUNTIME = 1.9 * 60 * 60  # 每2小时cron, 留余量提前退出交给下个job
 FLIP_RETRY = 3            # 翻期失败重试次数
@@ -73,7 +73,7 @@ FLIP_RETRY = 3            # 翻期失败重试次数
 BASE_9001 = os.environ.get("BASE_9001", "http://121.42.10.114:9001")
 
 # 参赛账号: (用户名, 密码)
-# 唯一账号: 云泽杯-1
+# 唯一账号: 自动-1
 ALL_ACCOUNTS = [
     ("云泽杯-1", "1234546@a"),
 ]
@@ -423,13 +423,12 @@ class Scheduler:
         h, mi = map(int, m.group(1).split(':'))
         now = self._now()
         target = now.replace(hour=h, minute=mi, second=0, microsecond=0)
-        # 跨午夜房间名: 开工时间为 START_HOUR 后, 若解析出 00:00~START_HOUR-1 且已过,
-        # 且当前处于白天/晚上 (>=START_HOUR点), 说明该房间是昨晚建房开赛时间落在次日凌晨,
-        # 需顺延到明天
-        # 若当前本身就是凌晨(<START_HOUR点)且目标已过, 则是今天凌晨该开而未开的旧房, 立即开
-        if target <= now and h < START_HOUR and now.hour >= START_HOUR:
+        # 跨午夜房间名: 开工时间为 08:00 后, 若解析出 00:00~07:59 且已过, 且当前处于白天/晚上
+        # (>=8点), 说明该房间是昨晚(如23:30建房)开赛时间落在次日凌晨, 需顺延到明天
+        # 若当前本身就是凌晨(<8点)且目标已过, 则是今天凌晨该开而未开的旧房, 立即开
+        if target <= now and h < 8 and now.hour >= 8:
             target += dt.timedelta(days=1)
-        # 正常操作时段(START_HOUR 后)的目标时间已过, 说明刚过或已过点, 直接开
+        # 正常操作时段(08:00 后)的目标时间已过, 说明刚过或已过点, 直接开
         if target <= now:
             return now
         return target
@@ -486,8 +485,8 @@ class Scheduler:
         """根据当前北京时间返回 (主场次, 次场次) 或 None表示收工"""
         now = self._now()
         h = now.hour + now.minute / 60
-        if START_HOUR <= h < 9:
-            return (1, 1)
+        if 7 <= h < 9:
+            return (2, 1)
         if 9 <= h < 12:
             return (2, 1)
         if 12 <= h < 14:
@@ -497,6 +496,8 @@ class Scheduler:
         if 17 <= h < 20:
             return (3, 2)
         if 20 <= h < START_LIMIT_HOUR:
+            return (1, 1)
+        if h == START_LIMIT_HOUR and now.minute < START_LIMIT_MIN:
             return (1, 1)
         return None
 
@@ -715,9 +716,8 @@ class Scheduler:
             # 1. 先检查时间, 决定建房类型
             plan = self.plan_level()
             if plan is None:
-                # 非建房时段(22:20后), 不建新房, 仅检查是否有遗漏(未结束)房间并处理
-                limit_h, limit_m = divmod(int(START_LIMIT_HOUR * 60), 60)
-                print(f"[{now.strftime('%H:%M')}] 已过{limit_h:02d}:{limit_m:02d}点, 非建房时段, 仅检查遗漏房间...", flush=True)
+                # 非建房时段(22:00后), 不建新房, 仅检查是否有遗漏(未结束)房间并处理
+                print(f"[{now.strftime('%H:%M')}] 已过{START_LIMIT_HOUR}:{START_LIMIT_MIN:02d}, 非建房时段, 仅检查遗漏房间...", flush=True)
                 own = self.find_own_rooms()
                 if own:
                     for lv, rid in own.items():
