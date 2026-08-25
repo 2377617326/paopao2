@@ -57,7 +57,7 @@ LEVELS = {
     6: {"name": "八仙过海", "full_n": 10, "min_players": 3},
 }
 
-ROOM_NAME_MARK = os.environ.get("ROOM_NAME_MARK", "云泽杯自动比赛")
+ROOM_NAME_MARK = os.environ.get("ROOM_NAME_MARK", "云泽杯自动比赛须进入新q群534274033")
 ROOM_NAME_TPL = ROOM_NAME_MARK + " 自动测试{time}开"
 TOTAL_PERIOD = 4          # 4季度
 PERIOD_LENGTH = 20        # 每周期20分钟 (翻期间隔)
