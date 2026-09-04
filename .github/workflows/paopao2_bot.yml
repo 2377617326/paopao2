@@ -28,7 +28,7 @@ jobs:
       - name: 运行自动调度器
         env:
           BOT_USER: "云泽杯-1"
-          BOT_PASS: "123321"
+          BOT_PASS: "123456"
         run: |
           python room_scheduler.py --login "$BOT_USER" "$BOT_PASS"
 
