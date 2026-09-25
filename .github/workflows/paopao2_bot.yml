@@ -37,7 +37,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          HOUR_BJ=$(( ($(date -u +%%H) + 8) %% 24 ))
+          HOUR_BJ=$(TZ=Asia/Shanghai date +%H)
           if [ $HOUR_BJ -ge 7 ] && [ $HOUR_BJ -lt 22 ]; then
             echo "BJ time ${HOUR_BJ}:00, working hours, restart in 30s..."
             sleep 30
